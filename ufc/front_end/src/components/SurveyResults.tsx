@@ -7,6 +7,7 @@ interface SurveyQuestion {
 }
 
 interface Survey {
+  id: number;
   title: string;
   questions: SurveyQuestion[];
 }
@@ -17,25 +18,22 @@ interface SurveyResultsProps {
 }
 
 const SurveyResults: React.FC<SurveyResultsProps> = ({ survey, responses }) => {
-  const countResponses = (qIndex: number, option: string) => {
-    return responses.reduce((count, response) => (response[qIndex] === option ? count + 1 : count), 0);
-  };
-
   return (
     <div>
-      <h2>Résultats du Sondage: {survey.title}</h2>
+      <h3>Résultats pour: {survey.title}</h3>
       {survey.questions.map((question, qIndex) => (
         <div key={qIndex}>
-          <p>{question.questionText}</p>
-          {question.type === 'radio' ? (
+          <h4>{question.questionText}</h4>
+          {question.type === 'radio' && (
             <ul>
-              {question.options!.map((option, oIndex) => (
+              {question.options?.map((option, oIndex) => (
                 <li key={oIndex}>
-                  {option}: {countResponses(qIndex, option)}
+                  {option}: {responses.filter(response => response[qIndex] === option).length}
                 </li>
               ))}
             </ul>
-          ) : (
+          )}
+          {question.type === 'text' && (
             <ul>
               {responses.map((response, rIndex) => (
                 <li key={rIndex}>{response[qIndex]}</li>

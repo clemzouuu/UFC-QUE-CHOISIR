@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
-interface Question {
+interface VoteQuestion {
   questionText: string;
   options: string[];
 }
 
 interface VoteCreatorProps {
-  onAddVote: (vote: { title: string; questions: Question[]; mode: string }) => void;
+  onAddVote: (vote: { title: string; questions: VoteQuestion[]; mode: string; comment?: string }) => void;
 }
 
 const VoteCreator: React.FC<VoteCreatorProps> = ({ onAddVote }) => {
   const [voteTitle, setVoteTitle] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([{ questionText: '', options: [''] }]);
-  const [mode, setMode] = useState('one-round');
+  const [questions, setQuestions] = useState<VoteQuestion[]>([{ questionText: '', options: [''] }]);
+  const [mode, setMode] = useState('vote à un tour');
+  const [comment, setComment] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +43,7 @@ const VoteCreator: React.FC<VoteCreatorProps> = ({ onAddVote }) => {
     setQuestions(newQuestions);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!voteTitle.trim()) {
       setError('Le titre du vote ne peut pas être vide.');
       return;
@@ -59,12 +61,25 @@ const VoteCreator: React.FC<VoteCreatorProps> = ({ onAddVote }) => {
       }
     }
     setError(null);
-    onAddVote({ title: voteTitle, questions, mode });
+    const vote = { title: voteTitle, questions, mode, comment };
+    onAddVote(vote);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:3000/votes', vote, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      console.log('Vote created:', response.data);
+    } catch (error) {
+      console.error('Error creating vote:', error);
+    }
   };
 
   return (
     <div>
-      <h2>Créer un vote</h2>
+      <h2>Créer un Vote</h2>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <input type="text" value={voteTitle} onChange={handleTitleChange} placeholder="Titre du vote" />
       {questions.map((question, qIndex) => (
@@ -94,39 +109,49 @@ const VoteCreator: React.FC<VoteCreatorProps> = ({ onAddVote }) => {
         <label>
           <input
             type="radio"
-            value="one-round"
-            checked={mode === 'one-round'}
-            onChange={() => setMode('one-round')}
+            value="vote à un tour"
+            checked={mode === 'vote à un tour'}
+            onChange={() => setMode('vote à un tour')}
           />
           Vote à un tour
         </label>
         <label>
           <input
             type="radio"
-            value="two-rounds"
-            checked={mode === 'two-rounds'}
-            onChange={() => setMode('two-rounds')}
+            value="vote à deux tours"
+            checked={mode === 'vote à deux tours'}
+            onChange={() => setMode('vote à deux tours')}
           />
           Vote à deux tours
         </label>
         <label>
           <input
             type="radio"
-            value="absolute-majority"
-            checked={mode === 'absolute-majority'}
-            onChange={() => setMode('absolute-majority')}
+            value="majorité absolue"
+            checked={mode === 'majorité absolue'}
+            onChange={() => setMode('majorité absolue')}
           />
           Majorité absolue
         </label>
         <label>
           <input
             type="radio"
-            value="relative-majority"
-            checked={mode === 'relative-majority'}
-            onChange={() => setMode('relative-majority')}
+            value="majorité relative"
+            checked={mode === 'majorité relative'}
+            onChange={() => setMode('majorité relative')}
           />
           Majorité relative
         </label>
+        {(mode === 'vote à deux tours' || mode === 'majorité absolue' || mode === 'majorité relative') && (
+          <div>
+            <input
+              type="text"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Ajouter un commentaire (ex: le 2eme tour aura lieu en date du 2 juin)"
+            />
+          </div>
+        )}
       </div>
 
       <button onClick={handleSubmit}>Soumettre le vote</button>

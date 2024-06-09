@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 
+interface VoteQuestion {
+  questionText: string;
+  options: string[];
+}
+
 interface Vote {
   title: string;
-  questions: { questionText: string; options: string[] }[];
+  questions: VoteQuestion[];
   mode: string;
+  comment?: string;
 }
 
 interface VoteResponseProps {
@@ -21,12 +27,15 @@ const VoteResponse: React.FC<VoteResponseProps> = ({ vote, onSubmit }) => {
   };
 
   const handleSubmit = () => {
-    onSubmit(responses);
+    onSubmit(responses); 
+    setResponses(Array(vote.questions.length).fill(''));
   };
 
   return (
     <div>
       <h2>{vote.title}</h2>
+      <p>Modalité de vote: {vote.mode}</p>
+      {vote.comment && <p>Commentaire: {vote.comment}</p>}
       {vote.questions.map((question, qIndex) => (
         <div key={qIndex}>
           <p>{question.questionText}</p>

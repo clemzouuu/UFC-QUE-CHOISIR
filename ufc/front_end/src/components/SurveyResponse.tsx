@@ -27,7 +27,6 @@ const SurveyResponse: React.FC<SurveyResponseProps> = ({ survey, onSubmit }) => 
 
   const handleSubmit = () => {
     onSubmit(responses);
-    // Réinitialiser les réponses après la soumission
     setResponses(Array(survey.questions.length).fill(''));
   };
 
